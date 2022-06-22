@@ -50,8 +50,8 @@ const updateUsers = (id, body) => {
       //   if (file !== null) {
       //      pict = file.path;
       //   }
-      const sqlQuery = 'UPDATE users SET username = coalesce($1, username), email = coalesce($2, email), password = coalesce($3, password), gender = coalesce($4, gender), description = coalesce($5, description), updated_at = $6 returning username, email, password, gender, description, updated_at';
-      db.query(sqlQuery, [username, email, password, gender, description, updated_at])
+      const sqlQuery = 'UPDATE users SET username = coalesce($1, username), email = coalesce($2, email), password = coalesce($3, password), gender = coalesce($4, gender), description = coalesce($5, description), updated_at = $6 WHERE id = $7 RETURNING username, email, password, gender, description, updated_at';
+      db.query(sqlQuery, [username, email, password, gender, description, updated_at, id])
          .then((result) => {
             const response = {
                data: result.rows[0],

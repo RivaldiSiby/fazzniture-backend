@@ -37,7 +37,7 @@ const findUsersControllers = (req, res) => {
 };
 
 const patchUsersControllers = (req, res) => {
-   const id = req.params.id;
+   const { id } = req.params;
    //    const { file = null } = req;
    updateUsers(id, req.body)
       .then((result) => {
@@ -48,6 +48,7 @@ const patchUsersControllers = (req, res) => {
          });
       })
       .catch((err) => {
+         console.log(err);
          res.status(500).json({
             err,
             data: [],
