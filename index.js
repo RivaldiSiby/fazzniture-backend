@@ -1,12 +1,22 @@
-const express = require('express');
+require('dotenv').config();
 
+const express = require('express');
 const mainRoter = require('./src/routes');
+const db = require('./src/config/db');
 
 const server = express();
-const PORT = 8080;
+const PORT = process.env.PORT || 8080;
 
-server.use(mainRoter);
+db.connect()
+   .then(() => {
+      console.log('Database Connected');
 
-server.listen(PORT, () => {
-   console.log(`App listening on port ${PORT}`);
-});
+      server.use(mainRoter);
+
+      server.listen(PORT, () => {
+         console.log(`App listening on port ${PORT}`);
+      });
+   })
+   .catch((error) => {
+      console.log(error);
+   });
