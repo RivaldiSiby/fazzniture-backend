@@ -39,6 +39,7 @@ const findUsersControllers = (req, res) => {
 const patchUsersControllers = (req, res) => {
    const { id } = req.params;
    const { file = null } = req;
+   console.log(req.files);
    updateUsers(id, file, req.body)
       .then((result) => {
          const { data } = result;
