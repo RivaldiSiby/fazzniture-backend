@@ -9,6 +9,8 @@ const PORT = process.env.PORT || 8080;
 
 db.connect()
    .then(() => {
+      server.use(express.json())
+      server.use(express.urlencoded({extended : false}))
       console.log('Database Connected');
 
       server.use(express.urlencoded({ extended: false }));
