@@ -13,6 +13,9 @@ db.connect()
       server.use(express.urlencoded({extended : false}))
       console.log('Database Connected');
 
+      server.use(express.urlencoded({ extended: false }));
+      server.use(express.json());
+
       server.use(mainRoter);
 
       server.listen(PORT, () => {
