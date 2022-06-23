@@ -24,18 +24,18 @@ const register = async (req, res) => {
     });
   }
 };
-const login = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const payload = await getPassByEmail(email);
-    const result = await bcrypt.compare(password, payload.password);
-    if (!result) {
-      return res.status(400).json({
-        msg: "Wrong email or password",
-      });
-    }
+// const login = async (req, res) => {
+//   try {
+//     const { email, password } = req.body;
+//     const payload = await getPassByEmail(email);
+//     const result = await bcrypt.compare(password, payload.password);
+//     if (!result) {
+//       return res.status(400).json({
+//         msg: "Wrong email or password",
+//       });
+//     }
 
-}
+// }
 const login = async (req, res)=>{
     try {
         const {email, password} = req.body
