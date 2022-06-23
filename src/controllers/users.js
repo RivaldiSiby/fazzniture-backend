@@ -38,8 +38,8 @@ const findUsersControllers = (req, res) => {
 
 const patchUsersControllers = (req, res) => {
    const { id } = req.params;
-   //    const { file = null } = req;
-   updateUsers(id, req.body)
+   const { file = null } = req;
+   updateUsers(id, file, req.body)
       .then((result) => {
          const { data } = result;
          res.status(200).json({
