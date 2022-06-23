@@ -3,23 +3,25 @@ const db = require('../config/db')
 
 const chekDuplicateEmail = async (req, res, next)=>{
     try {
-        const checkEmail = db.query(`SELECT * FROM users where email = ${req.body.email}`)
+        const email = req.body.email
+        const checkEmail = await db.query(`SELECT * FROM users where email = $1`, [email])
         if(!req.body.email){
             return res.status(400).json({
                 msg : "Please input valid email"
             })
         }
-        if(checkEmail === 0){
+        if(checkEmail.rowCount > 0){
             return res.status(400).json({
                 msg : "Email is already used"
             })
         }
+        next()
     } catch (error) {
+        console.log(error);
         res.status(400).json({
             msg : "Register failed",
             error
         })
-        console.log(error);
     }
 }
 

@@ -6,7 +6,7 @@ const signUp = (body, hashPassword)=>{
         const id = uuidv4()
         const created_at = new Date(Date.now())
         const {email, role_id} = body
-        const sqlQuery = "insert into users (id, email, password, role_id, created_at) values($1, $2, $3, $4, $5) returning email, role_id"
+        const sqlQuery = "INSERT INTO users(id, email, password, role_id, created_at) VALUES($1, $2, $3, $4, $5) RETURNING email, role_id"
         db.query(sqlQuery, [id, email, hashPassword, role_id, created_at])
         .then(result =>{
             resolve(result.rows)
@@ -18,8 +18,8 @@ const signUp = (body, hashPassword)=>{
 }
 const getPassByEmail = async (email)=>{
     try {
-        const result = await db.query('select id, username, password from users where email = $1', [email])
-        if(result.rowCount === 0) throw {status : 400, err : {msg : "Email is not registered"}}
+        const result = await db.query('select * from users where email = $1', [email])
+        if(result.rowCount === 0) throw {msg : "Email is not registered"}
         return result.rows[0]
     } catch (error) {
         throw {error}
