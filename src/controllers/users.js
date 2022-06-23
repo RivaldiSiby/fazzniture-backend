@@ -19,7 +19,7 @@ const postUsersControllers = (req, res) => {
 };
 
 const findUsersControllers = (req, res) => {
-   const id = req.params.id;
+   const id = req.userPayload.id;
    findUsers(id)
       .then(({ data }) => {
          res.status(200).json({
@@ -37,7 +37,7 @@ const findUsersControllers = (req, res) => {
 };
 
 const patchUsersControllers = (req, res) => {
-   const { id } = req.params;
+   const { id } = req.userPayload;
    const { file = null } = req;
    updateUsers(id, file, req.body)
       .then((result) => {
