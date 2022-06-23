@@ -3,6 +3,7 @@ require('dotenv').config();
 const express = require('express');
 const mainRoter = require('./src/routes');
 const db = require('./src/config/db');
+const cloudConfig = require('./src/config/cloudinary');
 
 const server = express();
 const PORT = process.env.PORT || 8080;
@@ -13,6 +14,8 @@ db.connect()
 
       server.use(express.urlencoded({ extended: false }));
       server.use(express.json());
+
+      server.use(cloudConfig);
 
       server.use(mainRoter);
 
