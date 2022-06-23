@@ -1,5 +1,5 @@
-const jwt = require('jsonwebtoken')
-const db = require('../config/db')
+const jwt = require("jsonwebtoken");
+const db = require("../config/db");
 
 const chekDuplicateEmail = async (req, res, next)=>{
     try {
@@ -22,22 +22,26 @@ const chekDuplicateEmail = async (req, res, next)=>{
             msg : "Register failed",
             error
         })
-    }
-}
 
-const verifyToken = (req, res, next)=>{
-    const bearerToken = req.header('Authorization')
-    if(!bearerToken) return res.status(403).json({
-        msg : "You need to sign in"
-    })
-    const oldtoken = bearerToken.split(" ")[1]
-    jwt.verify(oldtoken, process.env.JWT_SECRET, (err, payload)=>{
-        if (err && err.name === "TokenExpiredError") return res.status(401).json({
-            msg : "You need to sign in again"
-        })
-        req.userPayload = payload
-        next()
-    })
-}
+    console.log(error);
+  }
+};
 
-module.exports = {verifyToken, chekDuplicateEmail}
+const verifyToken = (req, res, next) => {
+  const bearerToken = req.header("Authorization");
+  if (!bearerToken)
+    return res.status(403).json({
+      msg: "You need to sign in",
+    });
+  const oldtoken = bearerToken.split(" ")[1];
+  jwt.verify(oldtoken, process.env.JWT_SECRET, (err, payload) => {
+    if (err && err.name === "TokenExpiredError")
+      return res.status(401).json({
+        msg: "You need to sign in again",
+      });
+    req.userPayload = payload;
+    next();
+  });
+};
+
+module.exports = { verifyToken, chekDuplicateEmail };

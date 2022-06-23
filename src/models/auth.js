@@ -1,5 +1,5 @@
 const db = require("../config/db");
-const {v4 : uuidv4} = require('uuid')
+const { v4: uuidv4 } = require("uuid");
 
 const signUp = (body, hashPassword)=>{
     return new Promise((resolve, reject)=>{
@@ -26,4 +26,5 @@ const getPassByEmail = async (email)=>{
     }
 }
 
-module.exports = {getPassByEmail, signUp}
+
+module.exports = { getPassByEmail, signUp };
