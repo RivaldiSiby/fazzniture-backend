@@ -6,7 +6,7 @@ const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const cloudinaryStorage = new CloudinaryStorage({
    cloudinary: cloudinary,
    params: {
-      folder: 'el-coffee',
+        folder: 'fazzniture',
    },
 });
 
@@ -25,7 +25,7 @@ const imageUpload = multer({
    storage: cloudinaryStorage,
    limits: limit,
    fileFilter: imageOnlyFilter,
-}).single('pict');
+}).array('file', 4);
 
 const upload = (req, res, next) => {
    imageUpload(req, res, (err) => {
