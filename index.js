@@ -5,6 +5,7 @@ const mainRoter = require("./src/routes");
 const db = require("./src/config/db");
 const cloudConfig = require("./src/config/cloudinary");
 const cors = require("cors");
+const morgan = require("morgan");
 
 const server = express();
 const PORT = process.env.PORT || 8080;
@@ -20,12 +21,17 @@ db.connect()
       methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
       allowedHeaders: ["Content-Type", "Authorization"],
     };
+
     server.use(cors(corsOptions));
 
     server.use(express.urlencoded({ extended: false }));
     server.use(express.json());
 
     server.use(cloudConfig);
+
+    if (process.env.STATUS === "development") {
+      server.use(morgan("default"));
+    }
 
     server.use(mainRoter);
 
