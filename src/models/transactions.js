@@ -3,12 +3,21 @@ const { v4: uuidv4 } = require("uuid");
 
 const createTransactions = (body, user_id) => {
   return new Promise((resolve, reject) => {
-    const { shiping_id, payment_id, seller_id } = body;
+    const { shiping_id, payment_id, seller_id, status } = body;
     const id = uuidv4();
     const created_at = new Date(Date.now());
     db.query(
-      `insert into transaction(id, shiping_id, payment_id, user_id,seller_id, created_at, updated_at) values($1,$2,$3,$4, $5, $6,$7) returning id`,
-      [id, shiping_id, payment_id, user_id, seller_id, created_at, created_at]
+      `insert into transaction(id, shiping_id, payment_id, user_id,seller_id,status, created_at, updated_at) values($1,$2,$3,$4, $5, $6,$7,$8) returning id`,
+      [
+        id,
+        shiping_id,
+        payment_id,
+        user_id,
+        seller_id,
+        status,
+        created_at,
+        created_at,
+      ]
     )
       .then((result) => {
         resolve(result.rows[0].id);
@@ -34,10 +43,10 @@ const createSales = async (body, transaction_id) => {
   }
 };
 
-const getAllTransactions = () => {
+const getAllTransactionsSeller = (id) => {
   return new Promise((resolve, reject) => {
     db.query(
-      'select t.id ,s2."method" as "shiping_method",p."method" as "payment_method" ,sum(s.total) as total,count(s.id) as quantity_items,  t.created_at ,t.updated_at from "transaction" t left join sales s on s.transaction_id = t.id inner join shiping s2 on t.shiping_id = s2.id inner join payment p on t.payment_id = p.id  group by t.id,s2.id,p.id'
+      'select t.id ,s2."method" as "shiping_method",p."method" as "payment_method" ,sum(s.total) as total,count(s.id) as quantity_items,  t.created_at ,t.updated_at from "transaction" t left join sales s on s.transaction_id = t.id inner join shiping s2 on t.shiping_id = s2.id inner join payment p on t.payment_id = p.id Where p.user_id = $1 group by t.id,s2.id,p.id'
     )
       .then((result) => {
         resolve(result.rows);

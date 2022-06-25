@@ -57,7 +57,7 @@ const updateUsers = (id, file, body) => {
     const updated_at = new Date(Date.now());
     const pict = file[0] ? file[0].path : null;
     const sqlQuery =
-      "UPDATE users SET username = coalesce($1, username), email = coalesce($2, email), password = coalesce($3, password), gender = coalesce($4, gender), description = coalesce($5, description), pict = coalesce($6, pict), updated_at = $7,store = coalesce($8, store),store_description = coalesce($8, store_description) WHERE id = $8 RETURNING username, email, password, gender, description, pict, store,store_description,updated_at";
+      "UPDATE users SET username = coalesce($1, username), email = coalesce($2, email), password = coalesce($3, password), gender = coalesce($4, gender), description = coalesce($5, description), pict = coalesce($6, pict), updated_at = $7,store = coalesce($8, store),store_description = coalesce($9, store_description) WHERE id = $10 RETURNING username, email, password, gender, description, pict, store,store_description,updated_at";
     db.query(sqlQuery, [
       username,
       email,
