@@ -43,10 +43,10 @@ const createSales = async (body, transaction_id) => {
   }
 };
 
-const getAllTransactionsSeller = (id) => {
+const getAllTransactions = (id) => {
   return new Promise((resolve, reject) => {
     db.query(
-      'select t.id ,s2."method" as "shiping_method",p."method" as "payment_method" ,sum(s.total) as total,count(s.id) as quantity_items,  t.created_at ,t.updated_at from "transaction" t left join sales s on s.transaction_id = t.id inner join shiping s2 on t.shiping_id = s2.id inner join payment p on t.payment_id = p.id Where p.user_id = $1 group by t.id,s2.id,p.id'
+      'select t.id ,s2."method" as "shiping_method",p."method" as "payment_method" ,sum(s.total) as total,count(s.id) as quantity_items,t.status,  t.created_at ,t.updated_at from "transaction" t left join sales s on s.transaction_id = t.id inner join shiping s2 on t.shiping_id = s2.id inner join payment p on t.payment_id = p.id Where p.user_id = $1 group by t.id,s2.id,p.id'
     )
       .then((result) => {
         resolve(result.rows);
