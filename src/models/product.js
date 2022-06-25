@@ -169,11 +169,12 @@ const getAllProduct = async (query) => {
     }
 
     const sqlQuery =
-      "select  p.id,p.name,p.description,c.name as category ,b.name as brand, s.size ,s.price,c2.name as color ,c2.class_color  ,f.file,p.created_at ,p.updated_at  from product p inner join size s on s.product_id = p.id inner join brands b on b.id = p.brands_id inner join category c on c.id = p.category_id inner join files f on f.product_id = p.id inner join colors c2 on c2.id = p.colors_id ";
-    const sqlCek = `WHERE ${textQuery + queryRange} deleted_at = 'false' `;
+      "select  p.id,s.id as size_id,p.name,p.description,c.name as category ,b.name as brand, s.size ,s.price,c2.name as color ,c2.class_color  ,f.file,p.created_at ,p.updated_at  from product p inner join size s on s.product_id = p.id inner join brands b on b.id = p.brands_id inner join category c on c.id = p.category_id inner join files f on f.product_id = p.id inner join colors c2 on c2.id = p.colors_id ";
+    const sqlCek = `WHERE ${textQuery + queryRange} p.deleted_at = 'false' `;
 
     // pagination
     const { page = 1, limit = 12 } = query;
+    let limitValue = limit * 5;
     const offset = parseInt(page - 1) * parseInt(limit);
     const paginationSql = ` LIMIT $${queryKey.length + 1} OFFSET $${
       queryKey.length + 2
@@ -189,7 +190,7 @@ const getAllProduct = async (query) => {
       queryKey.length !== 0 ? queryKey : ""
     );
 
-    queryKey.push(limit);
+    queryKey.push(limitValue);
     queryKey.push(offset);
 
     const fixQuery = sqlQuery + sqlCek + querySort + paginationSql;
@@ -200,7 +201,7 @@ const getAllProduct = async (query) => {
 
     // atur meta
     const totalData = countData.rowCount;
-    const totalPage = Math.ceil(totalData / parseInt(limit));
+    const totalPage = Math.ceil(totalData / parseInt(limitValue));
 
     return {
       data: data.rows,
