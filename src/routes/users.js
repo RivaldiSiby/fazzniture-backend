@@ -7,8 +7,8 @@ Router.post("/", userController.postUsersControllers);
 Router.get("/", middleware.verifyToken, userController.findUsersControllers);
 Router.patch(
   "/",
-  upload,
   middleware.verifyToken,
+  upload,
   userController.patchUsersControllers
 );
 
