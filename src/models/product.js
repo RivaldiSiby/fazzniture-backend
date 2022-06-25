@@ -145,11 +145,17 @@ const getAllProduct = async (query) => {
 
     //  handler range price
     if (byMin_range !== undefined) {
-      queryKey.push(parseInt(query.min_range));
       queryList.push({ query: "min_range", value: query.min_range });
+      if (query.min_range !== "") {
+        queryKey.push(parseInt(query.min_range));
+      }
+      if (query.min_range === "") {
+        queryKey.push(0);
+      }
+
       queryRange += `s.price >= $${queryKey.length} and `;
     }
-    if (byMax_range !== undefined) {
+    if (byMax_range !== undefined && query.max_range !== "") {
       queryKey.push(parseInt(query.max_range));
       queryList.push({ query: "max_range", value: query.max_range });
       queryRange += `s.price <= $${queryKey.length} and `;

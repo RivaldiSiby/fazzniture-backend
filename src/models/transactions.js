@@ -43,10 +43,171 @@ const createSales = async (body, transaction_id) => {
   }
 };
 
-const getAllTransactions = (id) => {
+const getAllTransaction = async (query) => {
+  const byStatus = Object.keys(query).find((item) => item === "status");
+  const bySort = Object.keys(query).find((item) => item === "sort");
+  const byOrder = Object.keys(query).find((item) => item === "order");
+
+  let queryList = [];
+  let queryKey = [];
+  let querySort = "";
+  let textQuery = "";
+  if (byStatus !== undefined) {
+    textQuery += `lower(t.status) LIKE lower('%' || $1 || '%') AND`;
+    queryList.push({ query: "status", value: query.status });
+    queryKey.push(query.status);
+  }
+  //   limit
+  //   pagination
+  const { page = 1, limit = 12 } = query;
+  const offset = parseInt(page - 1) * parseInt(limit);
+  const paginationSql = ` LIMIT $${queryKey.length + 1} OFFSET $${
+    queryKey.length + 2
+  }`;
+
   return new Promise((resolve, reject) => {
     db.query(
-      'select t.id ,s2."method" as "shiping_method",p."method" as "payment_method" ,sum(s.total) as total,count(s.id) as quantity_items,t.status,  t.created_at ,t.updated_at from "transaction" t left join sales s on s.transaction_id = t.id inner join shiping s2 on t.shiping_id = s2.id inner join payment p on t.payment_id = p.id Where p.user_id = $1 group by t.id,s2.id,p.id'
+      "select t.id ,s2.method as shiping_method,p.method as payment_method ,sum(s.total) as total,count(s.id) as quantity_items,t.status,u.store as seller,t.seller_id,u2.username as coustomer,t.user_id as coustomer_id, t.created_at ,t.updated_at from transaction t left join sales s on s.transaction_id = t.id inner join shiping s2 on t.shiping_id = s2.id inner join payment p on t.payment_id = p.id inner join users u on u.id = t.seller_id inner join users u2 on u2.id = t.user_id WHERE " +
+        textQuery +
+        " t.deleted_at = 'false' group by t.id,s2.id,p.id,u.id,u2.id ",
+      queryKey.length !== 0 ? queryKey : ""
+    )
+      .then((countData) => {
+        //  handler sort
+        if (bySort !== undefined) {
+          if (query.sort === "time") {
+            querySort = "ORDER BY t.created_at";
+            querySort += byOrder === undefined ? "asc" : query.order;
+          }
+
+          if (query.sort === "price") {
+            querySort = "ORDER BY total ";
+            querySort += byOrder === undefined ? "asc" : query.order;
+          }
+
+          queryList.push({ query: "sort", value: query.sort });
+        }
+
+        queryKey.push(limit);
+        queryKey.push(offset);
+
+        db.query(
+          "select t.id ,s2.method as shiping_method,p.method as payment_method ,sum(s.total) as total,count(s.id) as quantity_items,t.status,u.store as seller,t.seller_id,u2.username as coustomer,t.user_id as coustomer_id, t.created_at ,t.updated_at from transaction t left join sales s on s.transaction_id = t.id inner join shiping s2 on t.shiping_id = s2.id inner join payment p on t.payment_id = p.id inner join users u on u.id = t.seller_id inner join users u2 on u2.id = t.user_id WHERE " +
+            textQuery +
+            " t.deleted_at = 'false' group by t.id,s2.id,p.id,u.id,u2.id " +
+            querySort +
+            paginationSql,
+          queryKey.length !== 0 ? queryKey : ""
+        )
+          .then((result) => {
+            const totalData = countData.rowCount;
+            const totalPage = Math.ceil(totalData / parseInt(limit));
+
+            const data = {
+              data: result.rows,
+              totalData: totalData,
+              totalPage: totalPage,
+              query: queryList,
+            };
+            resolve(data);
+          })
+          .catch((err) => {
+            reject(err);
+          });
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
+const getAllTransactionsUser = (query, id) => {
+  const byStatus = Object.keys(query).find((item) => item === "status");
+  const bySort = Object.keys(query).find((item) => item === "sort");
+  const byOrder = Object.keys(query).find((item) => item === "order");
+
+  let queryList = [];
+  let queryKey = [];
+  let querySort = "";
+  let textQuery = "";
+  queryKey.push(id);
+  if (byStatus !== undefined) {
+    textQuery += `lower(t.status) LIKE lower('%' || $${
+      queryKey.length + 1
+    } || '%') AND `;
+    queryList.push({ query: "status", value: query.status });
+    queryKey.push(query.status);
+  }
+  //   limit
+  //   pagination
+  const { page = 1, limit = 12 } = query;
+  const offset = parseInt(page - 1) * parseInt(limit);
+  const paginationSql = ` LIMIT $${queryKey.length + 2} OFFSET $${
+    queryKey.length + 2
+  }`;
+
+  return new Promise((resolve, reject) => {
+    db.query(
+      "select t.id ,s2.method as shiping_method,p.method as payment_method ,sum(s.total) as total,count(s.id) as quantity_items,t.status,u.store as seller,t.seller_id, t.created_at ,t.updated_at from transaction t left join sales s on s.transaction_id = t.id inner join shiping s2 on t.shiping_id = s2.id inner join payment p on t.payment_id = p.id inner join users u on u.id = t.seller_id Where t.user_id = $1 and" +
+        textQuery +
+        " t.deleted_at group by t.id,s2.id,p.id,u.id" +
+        queryKey.length !==
+        0
+        ? queryKey
+        : ""
+    )
+      .then((countData) => {
+        //  handler sort
+        if (bySort !== undefined) {
+          if (query.sort === "time") {
+            querySort = "ORDER BY t.created_at";
+            querySort += byOrder === undefined ? "asc" : query.order;
+          }
+
+          if (query.sort === "price") {
+            querySort = "ORDER BY total ";
+            querySort += byOrder === undefined ? "asc" : query.order;
+          }
+
+          queryList.push({ query: "sort", value: query.sort });
+        }
+
+        queryKey.push(limit);
+        queryKey.push(offset);
+
+        db.query(
+          "select t.id ,s2.method as shiping_method,p.method as payment_method ,sum(s.total) as total,count(s.id) as quantity_items,t.status,u.store as seller,t.seller_id, t.created_at ,t.updated_at from transaction t left join sales s on s.transaction_id = t.id inner join shiping s2 on t.shiping_id = s2.id inner join payment p on t.payment_id = p.id inner join users u on u.id = t.seller_id Where t.user_id = $1 " +
+            textQuery +
+            " t.deleted_at group by t.id,s2.id,p.id,u.id" +
+            querySort +
+            paginationSql,
+          queryKey.length !== 0 ? queryKey : ""
+        )
+          .then((result) => {
+            const totalData = countData.rowCount;
+            const totalPage = Math.ceil(totalData / parseInt(limit));
+
+            const data = {
+              data: result.rows,
+              totalData: totalData,
+              totalPage: totalPage,
+              query: queryList,
+            };
+            resolve(data);
+          })
+          .catch((err) => {
+            reject(err);
+          });
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
+const getAllTransactionsSeller = (id) => {
+  return new Promise((resolve, reject) => {
+    db.query(
+      "select t.id ,s2.method as shiping_method,p.method as payment_method ,sum(s.total) as total,count(s.id) as quantity_items,t.status,u.username as coustomer,t.user_id as coustomer_id, t.created_at ,t.updated_at from transaction t left join sales s on s.transaction_id = t.id inner join shiping s2 on t.shiping_id = s2.id inner join payment p on t.payment_id = p.id inner join users u on u.id = t.user_id Where t.seller_id = $1 group by t.id,s2.id,p.id,u.id",
+      [id]
     )
       .then((result) => {
         resolve(result.rows);
@@ -60,7 +221,7 @@ const getAllTransactions = (id) => {
 const getDetailTransactions = (id) => {
   return new Promise((resolve, reject) => {
     const sqlQuery =
-      'select t.id ,s2."method" as "shiping_method",p."method" as "payment_method" ,sum(s.total) as total,count(s.id) as quantity_items,  t.created_at ,t.updated_at from "transaction" t left join sales s on s.transaction_id = t.id inner join shiping s2 on t.shiping_id = s2.id inner join payment p on t.payment_id = p.id where t.id = $1 group by t.id,s2.id,p.id';
+      'select t.id ,s2."method" as "shiping_method",p."method" as "payment_method" ,sum(s.total) as total,count(s.id) as quantity_items,u.store as seller,t.seller_id,u2.username as coustomer,t.user_id as coustomer_id,t.status, t.created_at ,t.updated_at from "transaction" t left join sales s on s.transaction_id = t.id inner join shiping s2 on t.shiping_id = s2.id inner join payment p on t.payment_id = p.id inner join users u on u.id = t.seller_id inner join users u2 on u2.id = t.user_id where t.id = $1 group by t.id,s2.id,p.id,u.id,u2.id ';
     db.query(sqlQuery, [id])
       .then((result) => {
         resolve(result.rows);
@@ -105,7 +266,9 @@ const softDeleteTransaction = (id) => {
 module.exports = {
   createSales,
   createTransactions,
-  getAllTransactions,
+  getAllTransactionsSeller,
+  getAllTransactionsUser,
+  getAllTransaction,
   getDetailTransactions,
   getSalesByTransactionid,
   softDeleteTransaction,

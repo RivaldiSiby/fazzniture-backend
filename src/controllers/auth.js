@@ -47,7 +47,7 @@ const login = async (req, res) => {
     const token = jwt.sign(payload, process.env.JWT_SECRET, {
       expiresIn: "1000s",
     });
-    const { username, gender, description, role_id, pict } = payload;
+    const { username, gender, description, role_id, role, pict } = payload;
     localStorage.setItem(`token${payload.id}`, token);
     res.status(200).json({
       msg: "Login Succes",
@@ -57,6 +57,7 @@ const login = async (req, res) => {
         gender,
         description,
         role_id,
+        role,
         pict,
       },
       token,

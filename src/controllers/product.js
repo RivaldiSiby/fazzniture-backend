@@ -64,7 +64,12 @@ const getSingleProductsControllers = async (req, res) => {
 const getAllProductControllers = async (req, res) => {
   try {
     // cek query page
-    req.query.page = req.query.page === undefined ? 1 : req.query.page;
+    req.query.page =
+      req.query.page === undefined
+        ? 1
+        : req.query.page === ""
+        ? 1
+        : req.query.page;
 
     const products = await getAllProduct(req.query);
     let productsFix = [];
