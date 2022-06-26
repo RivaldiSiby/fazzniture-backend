@@ -187,7 +187,7 @@ const getAllProduct = async (query) => {
     }
 
     const sqlQuery =
-      "select  p.id,s.id as stock_id,p.name,p.description,c.name as category ,b.name as brand, s.id,s2.name as size,s.price,s.unit_stock, s.condition as stock_condition,c2.name as color ,c2.class_color  ,f.file,p.seller_id ,u.store as seller,p.created_at ,p.updated_at  from product p inner join stock s on s.product_id = p.id inner join brands b on b.id = p.brands_id inner join category c on c.id = p.category_id inner join files f on f.product_id = p.id inner join colors c2 on c2.id = p.colors_id inner join users u on p.seller_id = u.id inner join size s2 on s.size_id = s2.id ";
+      "select p.id as product_id ,s.id as stock_id,p.name,p.description,c.name as category ,b.name as brand, s.id,s2.name as size,s.price,s.unit_stock, s.condition as stock_condition,c2.name as color ,c2.class_color  ,f.file,p.seller_id ,u.store as seller,p.created_at ,p.updated_at  from product p inner join stock s on s.product_id = p.id inner join brands b on b.id = p.brands_id inner join category c on c.id = p.category_id inner join files f on f.product_id = p.id inner join colors c2 on c2.id = p.colors_id inner join users u on p.seller_id = u.id inner join size s2 on s.size_id = s2.id ";
     const sqlCek = `WHERE ${textQuery + queryRange} p.deleted_at = 'false' `;
 
     // pagination
