@@ -14,6 +14,7 @@ const {
   getAllColors,
   getAllSizes,
   updateFile,
+  getSingelFile,
 } = productModels;
 
 const createProductsControllers = async (req, res) => {
@@ -55,6 +56,11 @@ const getSingleProductsControllers = async (req, res) => {
   try {
     const { id } = req.params;
     const result = await getSingleProducts(id);
+    if (!result.data) {
+      return res.status(404).json({
+        msg: "Product Not Found",
+      });
+    }
     res.status(200).json({
       data: result.data,
       pict: result.file,
@@ -76,12 +82,31 @@ const getAllProductControllers = async (req, res) => {
         : req.query.page;
 
     const products = await getAllProduct(req.query);
-    let productsFix = [];
-    products.data.map((data) => {
-      if (productsFix.findIndex((item) => item.id === data.id) === -1) {
-        productsFix.push(data);
-      }
+
+    if (products.data.length === 0) {
+      return res.status(404).json({
+        msg: "Product Not Found",
+      });
+    }
+    const waitFile = new Promise((resolve, reject) => {
+      let countFile = 0;
+      let productsFix = [];
+      products.data.map(async (data) => {
+        try {
+          const file = await getSingelFile(data.product_id);
+          countFile += 1;
+          data.file = file.file;
+          productsFix.push(data);
+          if (countFile === products.data.length) {
+            return resolve(productsFix);
+          }
+        } catch (error) {
+          reject(error);
+        }
+      });
     });
+    // handler file
+    const productsFix = await waitFile;
 
     //  path
     let queryPath = "";
@@ -122,12 +147,30 @@ const getAllProductControllers = async (req, res) => {
 const getAllFavoriteControllers = async (req, res) => {
   try {
     const products = await getAllFavorite();
-    let productsFix = [];
-    products.data.map((data) => {
-      if (productsFix.findIndex((item) => item.id === data.id) === -1) {
-        productsFix.push(data);
-      }
+    if (products.data.length === 0) {
+      return res.status(404).json({
+        msg: "Product Not Found",
+      });
+    }
+    const waitFile = new Promise((resolve, reject) => {
+      let countFile = 0;
+      let productsFix = [];
+      products.data.map(async (data) => {
+        try {
+          const file = await getSingelFile(data.product_id);
+          countFile += 1;
+          data.file = file.file;
+          productsFix.push(data);
+          if (countFile === products.data.length) {
+            return resolve(productsFix);
+          }
+        } catch (error) {
+          reject(error);
+        }
+      });
     });
+    // handler file
+    const productsFix = await waitFile;
     res.status(200).json({
       data: productsFix,
     });

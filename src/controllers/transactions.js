@@ -7,6 +7,7 @@ const {
   getAllTransactionsSeller,
   getAllTransactionsUser,
   softDeleteTransaction,
+  updateUnitStock,
 } = require("../models/transactions");
 
 const createNewTransaction = async (req, res) => {
@@ -18,6 +19,7 @@ const createNewTransaction = async (req, res) => {
       let countData = 0;
       products.map(async (product) => {
         try {
+          await updateUnitStock(quantity, stock_id);
           await createSales(product, result);
           countData += 1;
           if (countData === products.length) {

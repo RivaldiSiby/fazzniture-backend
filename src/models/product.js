@@ -86,7 +86,7 @@ const createFile = (file, product_id) => {
 const getSingleProducts = async (id) => {
   try {
     const sqlQuery =
-      ' select p.id,p."name",p.description,c."name" as category ,b."name" as brand,b.description as about_brand, c2."name" as color ,c2.class_color , s.id,s2.name as size,s.price,s.unit_stock, s.condition as stock_condition ,p.seller_id ,u.store as seller,u.store_description as seller_description,p.created_at ,p.updated_at from product p left join "stock" s on s.product_id = p.id inner join brands b on b.id = p.brands_id inner join category c on c.id = p.category_id inner join colors c2 on p.colors_id = c2.id inner join users u on p.seller_id = u.id inner join size s2 on s.size_id = s2.id where p.id = $1';
+      ' select p.id as product_id ,s.id as stock_id,p."name",p.description,c."name" as category ,b."name" as brand,b.description as about_brand, c2."name" as color ,c2.class_color , s.id,s2.name as size,s.price,s.unit_stock, s.condition as stock_condition ,p.seller_id ,u.store as seller,u.store_description as seller_description,p.created_at ,p.updated_at from product p left join "stock" s on s.product_id = p.id inner join brands b on b.id = p.brands_id inner join category c on c.id = p.category_id inner join colors c2 on p.colors_id = c2.id inner join users u on p.seller_id = u.id inner join size s2 on s.size_id = s2.id where p.id = $1';
     const getFile = "SELECT id,file FROM files where product_id = $1";
     const data = await db.query(sqlQuery, [id]);
     const file = await db.query(getFile, [id]);
@@ -94,6 +94,17 @@ const getSingleProducts = async (id) => {
       data: data.rows[0],
       file: file.rows,
     };
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+};
+
+const getSingelFile = async (id) => {
+  try {
+    const getFile = "SELECT id,file FROM files where product_id = $1";
+    const file = await db.query(getFile, [id]);
+    return file.rows[0];
   } catch (error) {
     console.log(error);
     throw error;
@@ -187,12 +198,12 @@ const getAllProduct = async (query) => {
     }
 
     const sqlQuery =
-      "select p.id as product_id ,s.id as stock_id,p.name,p.description,c.name as category ,b.name as brand, s.id,s2.name as size,s.price,s.unit_stock, s.condition as stock_condition,c2.name as color ,c2.class_color  ,f.file,p.seller_id ,u.store as seller,p.created_at ,p.updated_at  from product p inner join stock s on s.product_id = p.id inner join brands b on b.id = p.brands_id inner join category c on c.id = p.category_id inner join files f on f.product_id = p.id inner join colors c2 on c2.id = p.colors_id inner join users u on p.seller_id = u.id inner join size s2 on s.size_id = s2.id ";
+      "select p.id as product_id ,s.id as stock_id,p.name,p.description,c.name as category ,b.name as brand, s2.name as size,s.price,s.unit_stock, s.condition as stock_condition,c2.name as color ,c2.class_color,p.seller_id ,u.store as seller,p.created_at ,p.updated_at  from product p inner join stock s on s.product_id = p.id inner join brands b on b.id = p.brands_id inner join category c on c.id = p.category_id inner join colors c2 on c2.id = p.colors_id inner join users u on p.seller_id = u.id inner join size s2 on s.size_id = s2.id ";
     const sqlCek = `WHERE ${textQuery + queryRange} p.deleted_at = 'false' `;
 
     // pagination
     const { page = 1, limit = 12 } = query;
-    let limitValue = limit * 5;
+    let limitValue = limit;
     const offset = parseInt(page - 1) * parseInt(limit);
     const paginationSql = ` LIMIT $${queryKey.length + 1} OFFSET $${
       queryKey.length + 2
@@ -211,7 +222,6 @@ const getAllProduct = async (query) => {
     queryKey.push(limitValue);
     queryKey.push(offset);
 
-    console.log("tes");
     const fixQuery = sqlQuery + sqlCek + querySort + paginationSql;
     const data = await db.query(
       fixQuery,
@@ -237,7 +247,7 @@ const getAllProduct = async (query) => {
 const getAllFavorite = async () => {
   try {
     const sqlQuery =
-      'select p.id ,p."name" ,s.size_id ,s2."size" ,s2.price ,f.file ,count(quantity) as selling ,p.created_at ,p.updated_at  from sales s inner join "size" s2 on s2.id = s.size_id inner join product p on s2.product_id = p.id inner join files f on f.product_id = p.id group by s.size_id, s2.id, p.id, f.id';
+      'select p.id as product_id,s.stock_id,p."name" ,p.description ,s2."size_id",s3."name" as size ,s2.price ,count(quantity) as selling ,p.created_at ,p.updated_at  from sales s inner join stock s2 on s2.id = s.stock_id inner join product p on s2.product_id = p.id inner join "size" s3 on s2.size_id = s3.id  group by s.stock_id, s2.id, p.id,s3.id';
     const data = await db.query(sqlQuery);
     return {
       data: data.rows,
@@ -327,4 +337,5 @@ module.exports = {
   getAllCategories,
   getAllColors,
   getAllSizes,
+  getSingelFile,
 };
