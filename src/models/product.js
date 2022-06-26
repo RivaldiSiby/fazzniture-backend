@@ -265,6 +265,43 @@ const updateSize = async (body) => {
   }
 };
 
+const getAllBrands = async ()=>{
+  try {
+    const result = await db.query('SELECT id, name from brands')
+    return result.rows
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+const getAllCategories = async()=>{
+  try {
+    const result = await db.query('SELECT id, name from category')
+    return result.rows
+  } catch (error) {
+    console.log(error);
+    throw error
+  }
+}
+const getAllColors = async()=>{
+  try {
+    const result = await db.query('SELECT id, name from colors')
+    return result.rows
+  } catch (error) {
+    console.log(error);
+    throw error
+  }
+}
+
+const getAllSizes = async()=>{
+  try {
+    const result = await db.query('SELECT id, name from size')
+    return result.rows
+  } catch (error) {
+    console.log(error);
+    throw error
+  }
+}
 module.exports = {
   createProducts,
   createSize,
@@ -274,4 +311,8 @@ module.exports = {
   getAllFavorite,
   updateProduct,
   updateSize,
+  getAllBrands,
+  getAllCategories,
+  getAllColors,
+  getAllSizes
 };

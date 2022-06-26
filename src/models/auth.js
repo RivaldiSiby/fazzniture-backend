@@ -1,6 +1,7 @@
 const db = require("../config/db");
 const { v4: uuidv4 } = require("uuid");
 
+
 const signUp = (body, hashPassword) => {
   return new Promise((resolve, reject) => {
     const id = uuidv4();
@@ -23,8 +24,8 @@ const getPassByEmail = async (email) => {
       'select u.*,r.role  from users u inner join "role" r on u.role_id  = r.id where email = $1',
       [email]
     );
-    if (result.rowCount === 0) throw { msg: "Email is not registered" };
-    return result.rows[0];
+     if(result.rowCount === 0) throw {msg : "Email or password is incorrect"}
+        return result.rows[0]
   } catch (error) {
     throw { error };
   }
