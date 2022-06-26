@@ -2,7 +2,7 @@ const productModels = require("../models/product");
 
 const {
   createProducts,
-  createSize,
+  createStock,
   createFile,
   getSingleProducts,
   getAllProduct,
@@ -20,7 +20,7 @@ const createProductsControllers = async (req, res) => {
   try {
     const { id } = req.userPayload;
     const result = await createProducts(req.body, id);
-    await createSize(req.body, result);
+    await createStock(req.body, result);
     const { files = null } = req;
     const waitingFile = new Promise((resolve, reject) => {
       let count = 0;
@@ -174,58 +174,58 @@ const updateProductControllers = async (req, res) => {
     throw error;
   }
 };
-const getAllBrand =async(req, res)=>{
+const getAllBrand = async (req, res) => {
   try {
-    const result = await getAllBrands()
+    const result = await getAllBrands();
     res.status(200).json({
-      data : result
-    })
+      data: result,
+    });
   } catch (error) {
     console.log(err);
     res.status(400).json({
-      error
-    })
+      error,
+    });
   }
-}
-const getAllCategory = async(req, res)=>{
+};
+const getAllCategory = async (req, res) => {
   try {
-    const result = await getAllCategories()
+    const result = await getAllCategories();
     res.status(200).json({
-      data : result
-    })
+      data: result,
+    });
   } catch (error) {
     console.log(err);
     res.status(400).json({
-      error
-    })
+      error,
+    });
   }
-}
-const getAllColor = async(req, res)=>{
+};
+const getAllColor = async (req, res) => {
   try {
-    const result = await getAllColors()
+    const result = await getAllColors();
     res.status(200).json({
-      data : result
-    })
+      data: result,
+    });
   } catch (error) {
     console.log(err);
     res.status(400).json({
-      error
-    })
+      error,
+    });
   }
-}
-const getAllSize = async(req, res)=>{
+};
+const getAllSize = async (req, res) => {
   try {
-    const result = await getAllSizes()
+    const result = await getAllSizes();
     res.status(200).json({
-      data : result
-    })
+      data: result,
+    });
   } catch (error) {
     console.log(err);
     res.status(400).json({
-      error
-    })
+      error,
+    });
   }
-}
+};
 module.exports = {
   createProductsControllers,
   getSingleProductsControllers,
@@ -235,5 +235,5 @@ module.exports = {
   getAllBrand,
   getAllCategory,
   getAllColor,
-  getAllSize
+  getAllSize,
 };
