@@ -10,7 +10,7 @@ const register = async (req, res) => {
     const salt = await bcrypt.genSalt();
     const hashPassword = await bcrypt.hash(password, salt);
     const result = await signUp(req.body, hashPassword);
-    res.status(200).json({
+    res.status(201).json({
       msg: "Register Succes",
       data: result,
     });

@@ -3,21 +3,12 @@ const { v4: uuidv4 } = require("uuid");
 
 const createTransactions = (body, user_id) => {
   return new Promise((resolve, reject) => {
-    const { shipping_id, payment_id, seller_id, status } = body;
+    const { shipping_id, payment_id, status } = body;
     const id = uuidv4();
     const created_at = new Date(Date.now());
     db.query(
-      `insert into transaction(id, shipping_id, payment_id, user_id,seller_id,status, created_at, updated_at) values($1,$2,$3,$4, $5, $6,$7,$8) returning id`,
-      [
-        id,
-        shipping_id,
-        payment_id,
-        user_id,
-        seller_id,
-        status,
-        created_at,
-        created_at,
-      ]
+      `insert into transaction(id, shipping_id, payment_id, user_id,status, created_at, updated_at) values($1,$2,$3,$4, $5, $6,$7) returning id`,
+      [id, shipping_id, payment_id, user_id, status, created_at, created_at]
     )
       .then((result) => {
         resolve(result.rows[0].id);
@@ -67,7 +58,7 @@ const getAllTransaction = async (query) => {
 
   return new Promise((resolve, reject) => {
     db.query(
-      "select t.id ,s2.method as shipping_method,p.method as payment_method ,sum(s.total) as total,count(s.id) as quantity_items,t.status,u.store as seller,t.seller_id,u2.username as coustomer,t.user_id as coustomer_id, t.created_at ,t.updated_at from transaction t left join sales s on s.transaction_id = t.id inner join shipping s2 on t.shipping_id = s2.id inner join payment p on t.payment_id = p.id inner join users u on u.id = t.seller_id inner join users u2 on u2.id = t.user_id WHERE " +
+      "select t.id ,s2.method as shipping_method,p.method as payment_method ,sum(s.total) as total,count(s.id) as quantity_items,t.status,u.store as seller,,u2.username as coustomer,t.user_id as coustomer_id, t.created_at ,t.updated_at from transaction t left join sales s on s.transaction_id = t.id inner join shipping s2 on t.shipping_id = s2.id inner join payment p on t.payment_id = p.id inner join users u on u.id =  inner join users u2 on u2.id = t.user_id WHERE " +
         textQuery +
         " t.deleted_at = 'false' group by t.id,s2.id,p.id,u.id,u2.id ",
       queryKey.length !== 0 ? queryKey : ""
@@ -92,7 +83,7 @@ const getAllTransaction = async (query) => {
         queryKey.push(offset);
 
         db.query(
-          "select t.id ,s2.method as shipping_method,p.method as payment_method ,sum(s.total) as total,count(s.id) as quantity_items,t.status,u.store as seller,t.seller_id,u2.username as coustomer,t.user_id as coustomer_id, t.created_at ,t.updated_at from transaction t left join sales s on s.transaction_id = t.id inner join shipping s2 on t.shipping_id = s2.id inner join payment p on t.payment_id = p.id inner join users u on u.id = t.seller_id inner join users u2 on u2.id = t.user_id WHERE " +
+          "select t.id ,s2.method as shipping_method,p.method as payment_method ,sum(s.total) as total,count(s.id) as quantity_items,t.status,u.store as seller,,u2.username as coustomer,t.user_id as coustomer_id, t.created_at ,t.updated_at from transaction t left join sales s on s.transaction_id = t.id inner join shipping s2 on t.shipping_id = s2.id inner join payment p on t.payment_id = p.id inner join users u on u.id =  inner join users u2 on u2.id = t.user_id WHERE " +
             textQuery +
             " t.deleted_at = 'false' group by t.id,s2.id,p.id,u.id,u2.id " +
             querySort +
@@ -147,7 +138,7 @@ const getAllTransactionsUser = (query, id) => {
 
   return new Promise((resolve, reject) => {
     db.query(
-      "select t.id ,s2.method as shipping_method,p.method as payment_method ,sum(s.total) as total,count(s.id) as quantity_items,t.status,u.store as seller,t.seller_id, t.created_at ,t.updated_at from transaction t left join sales s on s.transaction_id = t.id inner join shipping s2 on t.shipping_id = s2.id inner join payment p on t.payment_id = p.id inner join users u on u.id = t.seller_id Where t.user_id = $1 and" +
+      "select t.id ,s2.method as shipping_method,p.method as payment_method ,sum(s.total) as total,count(s.id) as quantity_items,t.status,u.store as seller, t.created_at ,t.updated_at from transaction t left join sales s on s.transaction_id = t.id inner join shipping s2 on t.shipping_id = s2.id inner join payment p on t.payment_id = p.id Where t.user_id = $1 and" +
         textQuery +
         " t.deleted_at group by t.id,s2.id,p.id,u.id" +
         queryKey.length !==
@@ -175,9 +166,9 @@ const getAllTransactionsUser = (query, id) => {
         queryKey.push(offset);
 
         db.query(
-          "select t.id ,s2.method as shipping_method,p.method as payment_method ,sum(s.total) as total,count(s.id) as quantity_items,t.status,u.store as seller,t.seller_id, t.created_at ,t.updated_at from transaction t left join sales s on s.transaction_id = t.id inner join shipping s2 on t.shipping_id = s2.id inner join payment p on t.payment_id = p.id inner join users u on u.id = t.seller_id Where t.user_id = $1 " +
+          "select t.id ,s2.method as shipping_method,p.method as payment_method ,sum(s.total) as total,count(s.id) as quantity_items,t.status,t.created_at ,t.updated_at from transaction t left join sales s on s.transaction_id = t.id inner join shipping s2 on t.shipping_id = s2.id inner join payment p on t.payment_id = p.id  Where t.user_id = $1 " +
             textQuery +
-            " t.deleted_at group by t.id,s2.id,p.id,u.id" +
+            " t.deleted_at group by t.id,s2.id,p.id" +
             querySort +
             paginationSql,
           queryKey.length !== 0 ? queryKey : ""
@@ -206,7 +197,7 @@ const getAllTransactionsUser = (query, id) => {
 const getAllTransactionsSeller = (id) => {
   return new Promise((resolve, reject) => {
     db.query(
-      "select t.id ,s2.method as shipping_method,p.method as payment_method ,sum(s.total) as total,count(s.id) as quantity_items,t.status,u.username as coustomer,t.user_id as coustomer_id, t.created_at ,t.updated_at from transaction t left join sales s on s.transaction_id = t.id inner join shipping s2 on t.shipping_id = s2.id inner join payment p on t.payment_id = p.id inner join users u on u.id = t.user_id Where t.seller_id = $1 group by t.id,s2.id,p.id,u.id",
+      "select t.id ,s2.method as shipping_method,p.method as payment_method ,sum(s.total) as total,count(s.id) as quantity_items,t.status,u.username as coustomer,t.user_id as coustomer_id, t.created_at ,t.updated_at from transaction t left join sales s on s.transaction_id = t.id inner join shipping s2 on t.shipping_id = s2.id inner join payment p on t.payment_id = p.id inner join users u on u.id = t.user_id Where  = $1 group by t.id,s2.id,p.id,u.id",
       [id]
     )
       .then((result) => {
@@ -221,7 +212,7 @@ const getAllTransactionsSeller = (id) => {
 const getDetailTransactions = (id) => {
   return new Promise((resolve, reject) => {
     const sqlQuery =
-      'select t.id ,s2."method" as "shipping_method",p."method" as "payment_method" ,sum(s.total) as total,count(s.id) as quantity_items,u.store as seller,t.seller_id,u2.username as coustomer,t.user_id as coustomer_id,t.status, t.created_at ,t.updated_at from "transaction" t left join sales s on s.transaction_id = t.id inner join shipping s2 on t.shipping_id = s2.id inner join payment p on t.payment_id = p.id inner join users u on u.id = t.seller_id inner join users u2 on u2.id = t.user_id where t.id = $1 group by t.id,s2.id,p.id,u.id,u2.id ';
+      'select t.id ,s2."method" as "shipping_method",p."method" as "payment_method" ,sum(s.total) as total,count(s.id) as quantity_items,u.store as seller,,u2.username as coustomer,t.user_id as coustomer_id,t.status, t.created_at ,t.updated_at from "transaction" t left join sales s on s.transaction_id = t.id inner join shipping s2 on t.shipping_id = s2.id inner join payment p on t.payment_id = p.id inner join users u on u.id =  inner join users u2 on u2.id = t.user_id where t.id = $1 group by t.id,s2.id,p.id,u.id,u2.id ';
     db.query(sqlQuery, [id])
       .then((result) => {
         resolve(result.rows);
@@ -276,7 +267,7 @@ const updateUnitStock = async (quantity, id) => {
       throw new Error("out of stock");
     }
     // cek kecukupan stock
-    const stockCek = rows[0].unit_stock - parseInt(quantity);
+    const stockCek = checkStock.rows[0].unit_stock - parseInt(quantity);
     if (stockCek < 0) {
       throw new Error("not enough stock");
     }

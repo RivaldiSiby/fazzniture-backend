@@ -13,13 +13,30 @@ const {
 const createNewTransaction = async (req, res) => {
   try {
     const user_id = req.userPayload.id;
-    const result = await createTransactions(req.body, user_id);
     const products = req.body.products;
+    const waitingStock = new Promise((resolve, reject) => {
+      let countData = 0;
+      products.map(async (product) => {
+        try {
+          await updateUnitStock(product.quantity, product.stock_id);
+
+          countData += 1;
+          if (countData === products.length) {
+            return resolve();
+          }
+        } catch (error) {
+          console.log(error);
+          reject(error);
+        }
+      });
+    });
+    await waitingStock;
+    const result = await createTransactions(req.body, user_id);
+
     const waitingProduct = new Promise((resolve, reject) => {
       let countData = 0;
       products.map(async (product) => {
         try {
-          await updateUnitStock(quantity, stock_id);
           await createSales(product, result);
           countData += 1;
           if (countData === products.length) {
@@ -32,15 +49,15 @@ const createNewTransaction = async (req, res) => {
       });
     });
     await waitingProduct;
-    res.status(200).json({
+    res.status(201).json({
       msg: `Succes create transaction`,
       id: result,
     });
   } catch (error) {
-    res.status(400).json({
-      msg: `Cannot create transaction`,
-    });
     console.log(error);
+    res.status(400).json({
+      msg: error.message,
+    });
   }
 };
 

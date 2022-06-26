@@ -5,7 +5,7 @@ const { createUsers, findUsers, updateUsers } = usersModels;
 const postUsersControllers = (req, res) => {
   createUsers(req.body)
     .then((data) => {
-      res.status(200).json({
+      res.status(201).json({
         msg: "Created users success",
         data,
       });
