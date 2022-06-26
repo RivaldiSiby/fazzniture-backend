@@ -8,7 +8,7 @@ const createProducts = (body, seller_id) => {
     const created_at = new Date(Date.now());
     const updated_at = created_at;
     const sqlQuery =
-      "INSERT INTO product (id, name, description, brands_id, category_id,colors_id,seller_id, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7,$8) returning id";
+      "INSERT INTO product (id, name, description, brands_id, category_id,colors_id,seller_id, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7,$8,$9) returning id";
     db.query(sqlQuery, [
       id,
       name,
@@ -21,24 +21,35 @@ const createProducts = (body, seller_id) => {
       updated_at,
     ])
       .then((result) => {
+        console.log(result.rows);
         const response = result.rows[0];
         resolve(response.id);
       })
       .catch((err) => {
+        console.log(err);
         reject({ status: 500, err });
       });
   });
 };
 
-const createSize = (body, product_id) => {
+const createStock = (body, product_id) => {
   return new Promise((resolve, reject) => {
-    const { size, price } = body;
+    const { size_id, price, unit_stock, condition } = body;
     const id = uuidv4();
     const created_at = new Date(Date.now());
     const updated_at = created_at;
     const sqlQuery =
-      "INSERT INTO size (id, size, price, product_id, created_at, updated_at) values ($1, $2, $3, $4, $5, $6)";
-    db.query(sqlQuery, [id, size, price, product_id, created_at, updated_at])
+      "INSERT INTO stock (id, size_id, price, product_id,unit_stock,condition, created_at, updated_at) values ($1, $2, $3, $4, $5, $6,$7,$8)";
+    db.query(sqlQuery, [
+      id,
+      size_id,
+      price,
+      product_id,
+      unit_stock,
+      condition,
+      created_at,
+      updated_at,
+    ])
       .then((result) => {
         resolve(result);
       })
@@ -75,7 +86,7 @@ const createFile = (file, product_id) => {
 const getSingleProducts = async (id) => {
   try {
     const sqlQuery =
-      ' select p.id,p."name",p.description,c."name" as category ,b."name" as brand,b.description as about_brand, c2."name" as color ,c2.class_color , s."size" ,s.price ,p.seller_id ,u.store as seller,u.store_description as seller_description,p.created_at ,p.updated_at from product p left join "size" s on s.product_id = p.id inner join brands b on b.id = p.brands_id inner join category c on c.id = p.category_id inner join colors c2 on p.colors_id = c2.id inner join users u on p.seller_id = u.id where p.id = $1';
+      ' select p.id,p."name",p.description,c."name" as category ,b."name" as brand,b.description as about_brand, c2."name" as color ,c2.class_color , s.id,s2.name as size,s.price,s.unit_stock, s.condition as stock_condition ,p.seller_id ,u.store as seller,u.store_description as seller_description,p.created_at ,p.updated_at from product p left join "stock" s on s.product_id = p.id inner join brands b on b.id = p.brands_id inner join category c on c.id = p.category_id inner join colors c2 on p.colors_id = c2.id inner join users u on p.seller_id = u.id inner join size s2 on s.size_id = s2.id where p.id = $1';
     const getFile = "SELECT id,file FROM files where product_id = $1";
     const data = await db.query(sqlQuery, [id]);
     const file = await db.query(getFile, [id]);
@@ -115,7 +126,7 @@ const getAllProduct = async (query) => {
       queryKey.push(query.category);
     }
     if (bySize !== undefined) {
-      queryArray.push("s.size");
+      queryArray.push("s2.name");
       queryList.push({ query: "size", value: query.size });
       queryKey.push(query.size);
     }
@@ -176,7 +187,7 @@ const getAllProduct = async (query) => {
     }
 
     const sqlQuery =
-      "select  p.id,s.id as size_id,p.name,p.description,c.name as category ,b.name as brand, s.size ,s.price,c2.name as color ,c2.class_color  ,f.file,p.seller_id ,u.store as seller,p.created_at ,p.updated_at  from product p inner join size s on s.product_id = p.id inner join brands b on b.id = p.brands_id inner join category c on c.id = p.category_id inner join files f on f.product_id = p.id inner join colors c2 on c2.id = p.colors_id inner join users u on p.seller_id = u.id ";
+      "select  p.id,s.id as stock_id,p.name,p.description,c.name as category ,b.name as brand, s.id,s2.name as size,s.price,s.unit_stock, s.condition as stock_condition,c2.name as color ,c2.class_color  ,f.file,p.seller_id ,u.store as seller,p.created_at ,p.updated_at  from product p inner join stock s on s.product_id = p.id inner join brands b on b.id = p.brands_id inner join category c on c.id = p.category_id inner join files f on f.product_id = p.id inner join colors c2 on c2.id = p.colors_id inner join users u on p.seller_id = u.id inner join size s2 on s.size_id = s2.id ";
     const sqlCek = `WHERE ${textQuery + queryRange} p.deleted_at = 'false' `;
 
     // pagination
@@ -189,7 +200,7 @@ const getAllProduct = async (query) => {
 
     //  total data dan total page
     const queryCountData =
-      "select s.id from product p inner join size s on s.product_id = p.id inner join brands b on b.id = p.brands_id inner join category c on c.id = p.category_id inner join colors c2 on c2.id = p.colors_id " +
+      "select s.id  from product p inner join stock s on s.product_id = p.id inner join brands b on b.id = p.brands_id inner join category c on c.id = p.category_id inner join colors c2 on c2.id = p.colors_id inner join users u on p.seller_id = u.id inner join size s2 on s.size_id = s2.id " +
       sqlCek +
       querySort;
     const countData = await db.query(
@@ -200,6 +211,7 @@ const getAllProduct = async (query) => {
     queryKey.push(limitValue);
     queryKey.push(offset);
 
+    console.log("tes");
     const fixQuery = sqlQuery + sqlCek + querySort + paginationSql;
     const data = await db.query(
       fixQuery,
@@ -265,46 +277,46 @@ const updateSize = async (body) => {
   }
 };
 
-const getAllBrands = async ()=>{
+const getAllBrands = async () => {
   try {
-    const result = await db.query('SELECT id, name from brands')
-    return result.rows
+    const result = await db.query("SELECT id, name from brands");
+    return result.rows;
   } catch (error) {
     console.log(error);
   }
-}
+};
 
-const getAllCategories = async()=>{
+const getAllCategories = async () => {
   try {
-    const result = await db.query('SELECT id, name from category')
-    return result.rows
+    const result = await db.query("SELECT id, name from category");
+    return result.rows;
   } catch (error) {
     console.log(error);
-    throw error
+    throw error;
   }
-}
-const getAllColors = async()=>{
+};
+const getAllColors = async () => {
   try {
-    const result = await db.query('SELECT id, name from colors')
-    return result.rows
+    const result = await db.query("SELECT id, name from colors");
+    return result.rows;
   } catch (error) {
     console.log(error);
-    throw error
+    throw error;
   }
-}
+};
 
-const getAllSizes = async()=>{
+const getAllSizes = async () => {
   try {
-    const result = await db.query('SELECT id, name from size')
-    return result.rows
+    const result = await db.query("SELECT id, name from size");
+    return result.rows;
   } catch (error) {
     console.log(error);
-    throw error
+    throw error;
   }
-}
+};
 module.exports = {
   createProducts,
-  createSize,
+  createStock,
   createFile,
   getSingleProducts,
   getAllProduct,
@@ -314,5 +326,5 @@ module.exports = {
   getAllBrands,
   getAllCategories,
   getAllColors,
-  getAllSizes
+  getAllSizes,
 };
