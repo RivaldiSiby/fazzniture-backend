@@ -12,12 +12,14 @@ const {
   getAllBrands,
   getAllCategories,
   getAllColors,
-  getAllSizes
+  getAllSizes,
+  updateFile,
 } = productModels;
 
 const createProductsControllers = async (req, res) => {
   try {
-    const result = await createProducts(req.body);
+    const { id } = req.userPayload;
+    const result = await createProducts(req.body, id);
     await createSize(req.body, result);
     const { files = null } = req;
     const waitingFile = new Promise((resolve, reject) => {
@@ -66,7 +68,12 @@ const getSingleProductsControllers = async (req, res) => {
 const getAllProductControllers = async (req, res) => {
   try {
     // cek query page
-    req.query.page = req.query.page === undefined ? 1 : req.query.page;
+    req.query.page =
+      req.query.page === undefined
+        ? 1
+        : req.query.page === ""
+        ? 1
+        : req.query.page;
 
     const products = await getAllProduct(req.query);
     let productsFix = [];
@@ -135,6 +142,27 @@ const updateProductControllers = async (req, res) => {
     const { id } = req.params;
     const result = await updateProduct(id, req.body);
     const resultSize = await updateSize(req.body);
+    // handler files
+    const { files = null } = req;
+    const arrFilesKey = req.body.files_id;
+    if (files !== null) {
+      const waitingFile = new Promise((resolve, reject) => {
+        let count = 0;
+        req.files.map(async (file) => {
+          try {
+            await updateFile(file, arrFilesKey);
+            count += 1;
+            if (count === files.length) {
+              return resolve();
+            }
+          } catch (error) {
+            reject(error);
+          }
+        });
+      });
+      await waitingFile;
+    }
+
     res.status(200).json({
       data: {
         result,

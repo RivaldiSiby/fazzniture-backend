@@ -1,14 +1,14 @@
 const db = require("../config/db");
 const { v4: uuidv4 } = require("uuid");
 
-const createProducts = (body) => {
+const createProducts = (body, seller_id) => {
   return new Promise((resolve, reject) => {
     const { name, description, brands_id, category_id, colors_id } = body;
     const id = uuidv4();
     const created_at = new Date(Date.now());
     const updated_at = created_at;
     const sqlQuery =
-      "INSERT INTO product (id, name, description, brands_id, category_id,colors_id, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7,$8) returning id";
+      "INSERT INTO product (id, name, description, brands_id, category_id,colors_id,seller_id, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7,$8) returning id";
     db.query(sqlQuery, [
       id,
       name,
@@ -16,6 +16,7 @@ const createProducts = (body) => {
       brands_id,
       category_id,
       colors_id,
+      seller_id,
       created_at,
       updated_at,
     ])
@@ -74,7 +75,7 @@ const createFile = (file, product_id) => {
 const getSingleProducts = async (id) => {
   try {
     const sqlQuery =
-      ' select p.id,p."name",p.description,c."name" as category ,b."name" as brand,b.description as about_brand, c2."name" as color ,c2.class_color , s."size" ,s.price ,p.created_at ,p.updated_at from product p left join "size" s on s.product_id = p.id inner join brands b on b.id = p.brands_id inner join category c on c.id = p.category_id inner join colors c2 on p.colors_id = c2.id where p.id = $1';
+      ' select p.id,p."name",p.description,c."name" as category ,b."name" as brand,b.description as about_brand, c2."name" as color ,c2.class_color , s."size" ,s.price ,p.seller_id ,u.store as seller,u.store_description as seller_description,p.created_at ,p.updated_at from product p left join "size" s on s.product_id = p.id inner join brands b on b.id = p.brands_id inner join category c on c.id = p.category_id inner join colors c2 on p.colors_id = c2.id inner join users u on p.seller_id = u.id where p.id = $1';
     const getFile = "SELECT id,file FROM files where product_id = $1";
     const data = await db.query(sqlQuery, [id]);
     const file = await db.query(getFile, [id]);
@@ -144,11 +145,17 @@ const getAllProduct = async (query) => {
 
     //  handler range price
     if (byMin_range !== undefined) {
-      queryKey.push(parseInt(query.min_range));
       queryList.push({ query: "min_range", value: query.min_range });
+      if (query.min_range !== "") {
+        queryKey.push(parseInt(query.min_range));
+      }
+      if (query.min_range === "") {
+        queryKey.push(0);
+      }
+
       queryRange += `s.price >= $${queryKey.length} and `;
     }
-    if (byMax_range !== undefined) {
+    if (byMax_range !== undefined && query.max_range !== "") {
       queryKey.push(parseInt(query.max_range));
       queryList.push({ query: "max_range", value: query.max_range });
       queryRange += `s.price <= $${queryKey.length} and `;
@@ -169,11 +176,12 @@ const getAllProduct = async (query) => {
     }
 
     const sqlQuery =
-      "select  p.id,p.name,p.description,c.name as category ,b.name as brand, s.size ,s.price,c2.name as color ,c2.class_color  ,f.file,p.created_at ,p.updated_at  from product p inner join size s on s.product_id = p.id inner join brands b on b.id = p.brands_id inner join category c on c.id = p.category_id inner join files f on f.product_id = p.id inner join colors c2 on c2.id = p.colors_id ";
-    const sqlCek = `WHERE ${textQuery + queryRange} deleted_at = 'false' `;
+      "select  p.id,s.id as size_id,p.name,p.description,c.name as category ,b.name as brand, s.size ,s.price,c2.name as color ,c2.class_color  ,f.file,p.seller_id ,u.store as seller,p.created_at ,p.updated_at  from product p inner join size s on s.product_id = p.id inner join brands b on b.id = p.brands_id inner join category c on c.id = p.category_id inner join files f on f.product_id = p.id inner join colors c2 on c2.id = p.colors_id inner join users u on p.seller_id = u.id ";
+    const sqlCek = `WHERE ${textQuery + queryRange} p.deleted_at = 'false' `;
 
     // pagination
     const { page = 1, limit = 12 } = query;
+    let limitValue = limit * 5;
     const offset = parseInt(page - 1) * parseInt(limit);
     const paginationSql = ` LIMIT $${queryKey.length + 1} OFFSET $${
       queryKey.length + 2
@@ -189,7 +197,7 @@ const getAllProduct = async (query) => {
       queryKey.length !== 0 ? queryKey : ""
     );
 
-    queryKey.push(limit);
+    queryKey.push(limitValue);
     queryKey.push(offset);
 
     const fixQuery = sqlQuery + sqlCek + querySort + paginationSql;
@@ -200,7 +208,7 @@ const getAllProduct = async (query) => {
 
     // atur meta
     const totalData = countData.rowCount;
-    const totalPage = Math.ceil(totalData / parseInt(limit));
+    const totalPage = Math.ceil(totalData / parseInt(limitValue));
 
     return {
       data: data.rows,

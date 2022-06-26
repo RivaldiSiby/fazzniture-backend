@@ -26,11 +26,12 @@ const imageUpload = multer({
   storage: cloudinaryStorage,
   limits: limit,
   fileFilter: imageOnlyFilter,
-}).array("file", 4);
+}).array("file", 5);
 
 const upload = (req, res, next) => {
   imageUpload(req, res, (err) => {
     if (err) {
+      console.log(err);
       res.status(400).json({
         error: err.message,
       });
