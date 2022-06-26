@@ -1,7 +1,6 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { LocalStorage } = require("node-localstorage");
-const localStorage = new LocalStorage("./cache");
+const { client } = require("../config/redis");
 const { getPassByEmail, signUp } = require("../models/auth");
 
 const register = async (req, res) => {
@@ -22,18 +21,6 @@ const register = async (req, res) => {
     });
   }
 };
-// const login = async (req, res) => {
-//   try {
-//     const { email, password } = req.body;
-//     const payload = await getPassByEmail(email);
-//     const result = await bcrypt.compare(password, payload.password);
-//     if (!result) {
-//       return res.status(400).json({
-//         msg: "Wrong email or password",
-//       });
-//     }
-
-// }
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -45,10 +32,10 @@ const login = async (req, res) => {
       });
     }
     const token = jwt.sign(payload, process.env.JWT_SECRET, {
-      expiresIn: "1000s",
+      expiresIn: "500s",
     });
     const { username, gender, description, role_id, role, pict } = payload;
-    localStorage.setItem(`token${payload.id}`, token);
+    await client.set(`token${payload.id}`, token)
     res.status(200).json({
       msg: "Login Succes",
       datauser: {
@@ -72,15 +59,21 @@ const login = async (req, res) => {
 };
 const logout = async (req, res) => {
   try {
-    const bearerToken = req.header("Authorization");
-    const oldtoken = bearerToken.split(" ")[1];
-    jwt.verify(oldtoken, process.env.JWT_SECRET, (err, data) => {
-      if (err) res.status(500).json({ msg: "cannot logout" });
-      localStorage.removeItem(`token${data.id}`);
-      res.status(200).json({
-        msg: "Logout succes",
-      });
-    });
+    const {id} = req.userPayload
+    console.log(id);
+    const cacheToken = await client.get(`token${id}`)
+    if(!cacheToken){
+      return res.status(403).json({
+        msg : "You need to sign in"
+      })
+    }
+    if(cacheToken){
+      await client.del(`token${id}`)
+    }
+    
+    res.status(200).json({
+      msg : "Logout succes"
+    })
   } catch (error) {
     console.log(error);
     res.status(400).json({

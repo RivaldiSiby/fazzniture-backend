@@ -7,7 +7,7 @@ const transactionRouter = require("./transactions");
 const productRouter = require("./product");
 const brandRouter = require('./brands')
 const categoryRouter = require('./category')
-const colorRouter = require('./color')
+const colorRouter = require('./colors')
 const sizeRouter = require('./sizes')
 
 Router.use("/ping", pingRouter);
