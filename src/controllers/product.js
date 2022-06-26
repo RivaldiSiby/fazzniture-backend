@@ -9,6 +9,10 @@ const {
   getAllFavorite,
   updateProduct,
   updateSize,
+  getAllBrands,
+  getAllCategories,
+  getAllColors,
+  getAllSizes
 } = productModels;
 
 const createProductsControllers = async (req, res) => {
@@ -142,11 +146,66 @@ const updateProductControllers = async (req, res) => {
     throw error;
   }
 };
-
+const getAllBrand =async(req, res)=>{
+  try {
+    const result = await getAllBrands()
+    res.status(200).json({
+      data : result
+    })
+  } catch (error) {
+    console.log(err);
+    res.status(400).json({
+      error
+    })
+  }
+}
+const getAllCategory = async(req, res)=>{
+  try {
+    const result = await getAllCategories()
+    res.status(200).json({
+      data : result
+    })
+  } catch (error) {
+    console.log(err);
+    res.status(400).json({
+      error
+    })
+  }
+}
+const getAllColor = async(req, res)=>{
+  try {
+    const result = await getAllColors()
+    res.status(200).json({
+      data : result
+    })
+  } catch (error) {
+    console.log(err);
+    res.status(400).json({
+      error
+    })
+  }
+}
+const getAllSize = async(req, res)=>{
+  try {
+    const result = await getAllSizes()
+    res.status(200).json({
+      data : result
+    })
+  } catch (error) {
+    console.log(err);
+    res.status(400).json({
+      error
+    })
+  }
+}
 module.exports = {
   createProductsControllers,
   getSingleProductsControllers,
   getAllProductControllers,
   getAllFavoriteControllers,
   updateProductControllers,
+  getAllBrand,
+  getAllCategory,
+  getAllColor,
+  getAllSize
 };

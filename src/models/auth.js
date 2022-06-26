@@ -19,7 +19,7 @@ const signUp = (body, hashPassword)=>{
 const getPassByEmail = async (email)=>{
     try {
         const result = await db.query('select * from users where email = $1', [email])
-        if(result.rowCount === 0) throw {msg : "Email is not registered"}
+        if(result.rowCount === 0) throw {msg : "Email or password is incorrect"}
         return result.rows[0]
     } catch (error) {
         throw {error}
