@@ -6,10 +6,11 @@ const db = require('./src/config/db');
 const cloudConfig = require('./src/config/cloudinary');
 const cors = require('cors');
 const morgan = require('morgan');
+const {redisCon} = require('./src/config/redis')
 
 const server = express();
 const PORT = process.env.PORT || 8080;
-
+redisCon()
 db.connect()
    .then(() => {
       server.use(express.json());
