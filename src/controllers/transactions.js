@@ -10,6 +10,8 @@ const {
   updateUnitStock,
 } = require("../models/transactions");
 
+const { getSingelFile } = require("../models/product");
+
 const createNewTransaction = async (req, res) => {
   try {
     const user_id = req.userPayload.id;
@@ -76,10 +78,33 @@ const showAllTransactions = async (req, res) => {
       result = await getAllTransaction(req.query);
     }
     if (role === "seller") {
-      result = await getAllTransactionsSeller(user_id);
+      const products = await getAllTransactionsSeller(req.query, user_id);
+      console.log(products);
+      const waitFile = new Promise((resolve, reject) => {
+        let countFile = 0;
+        let productsFix = [];
+        products.data.map(async (data) => {
+          try {
+            const file = await getSingelFile(data.product_id);
+            console.log(file);
+            countFile += 1;
+            data.file = file.file;
+            productsFix.push(data);
+            if (countFile === products.data.length) {
+              return resolve(productsFix);
+            }
+          } catch (error) {
+            reject(error);
+          }
+        });
+      });
+      // handler file
+
+      products.data = await waitFile;
+      result = products;
     }
     if (role === "coustomer") {
-      result = await getAllTransactionsUser(user_id);
+      result = await getAllTransactionsUser(req.query, user_id);
     }
     //  path
     let queryPath = "";

@@ -58,9 +58,9 @@ const getAllTransaction = async (query) => {
 
   return new Promise((resolve, reject) => {
     db.query(
-      "select t.id ,s2.method as shipping_method,p.method as payment_method ,sum(s.total) as total,count(s.id) as quantity_items,t.status,u.store as seller,,u2.username as coustomer,t.user_id as coustomer_id, t.created_at ,t.updated_at from transaction t left join sales s on s.transaction_id = t.id inner join shipping s2 on t.shipping_id = s2.id inner join payment p on t.payment_id = p.id inner join users u on u.id =  inner join users u2 on u2.id = t.user_id WHERE " +
+      "select t.id ,s2.method as shipping_method,p.method as payment_method ,sum(s.total) as total,count(s.id) as quantity_items,t.status,u2.username as coustomer,t.user_id as coustomer_id, t.created_at ,t.updated_at from transaction t left join sales s on s.transaction_id = t.id inner join shipping s2 on t.shipping_id = s2.id inner join payment p on t.payment_id = p.id inner join users u2 on u2.id = t.user_id WHERE " +
         textQuery +
-        " t.deleted_at = 'false' group by t.id,s2.id,p.id,u.id,u2.id ",
+        " t.deleted_at = 'false' group by t.id,s2.id,p.id,u2.id ",
       queryKey.length !== 0 ? queryKey : ""
     )
       .then((countData) => {
@@ -83,9 +83,9 @@ const getAllTransaction = async (query) => {
         queryKey.push(offset);
 
         db.query(
-          "select t.id ,s2.method as shipping_method,p.method as payment_method ,sum(s.total) as total,count(s.id) as quantity_items,t.status,u.store as seller,,u2.username as coustomer,t.user_id as coustomer_id, t.created_at ,t.updated_at from transaction t left join sales s on s.transaction_id = t.id inner join shipping s2 on t.shipping_id = s2.id inner join payment p on t.payment_id = p.id inner join users u on u.id =  inner join users u2 on u2.id = t.user_id WHERE " +
+          "select t.id ,s2.method as shipping_method,p.method as payment_method ,sum(s.total) as total,count(s.id) as quantity_items,t.status,u2.username as coustomer,t.user_id as coustomer_id, t.created_at ,t.updated_at from transaction t left join sales s on s.transaction_id = t.id inner join shipping s2 on t.shipping_id = s2.id inner join payment p on t.payment_id = p.id inner join users u2 on u2.id = t.user_id WHERE " +
             textQuery +
-            " t.deleted_at = 'false' group by t.id,s2.id,p.id,u.id,u2.id " +
+            " t.deleted_at = 'false' group by t.id,s2.id,p.id,u2.id " +
             querySort +
             paginationSql,
           queryKey.length !== 0 ? queryKey : ""
@@ -132,19 +132,15 @@ const getAllTransactionsUser = (query, id) => {
   //   pagination
   const { page = 1, limit = 12 } = query;
   const offset = parseInt(page - 1) * parseInt(limit);
-  const paginationSql = ` LIMIT $${queryKey.length + 2} OFFSET $${
+  const paginationSql = ` LIMIT $${queryKey.length + 1} OFFSET $${
     queryKey.length + 2
   }`;
-
   return new Promise((resolve, reject) => {
     db.query(
-      "select t.id ,s2.method as shipping_method,p.method as payment_method ,sum(s.total) as total,count(s.id) as quantity_items,t.status,u.store as seller, t.created_at ,t.updated_at from transaction t left join sales s on s.transaction_id = t.id inner join shipping s2 on t.shipping_id = s2.id inner join payment p on t.payment_id = p.id Where t.user_id = $1 and" +
+      "select t.id ,s2.method as shipping_method,p.method as payment_method ,sum(s.total) as total,count(s.id) as quantity_items,t.status, t.created_at ,t.updated_at from transaction t left join sales s on s.transaction_id = t.id inner join shipping s2 on t.shipping_id = s2.id inner join payment p on t.payment_id = p.id Where t.user_id = $1 and" +
         textQuery +
-        " t.deleted_at group by t.id,s2.id,p.id,u.id" +
-        queryKey.length !==
-        0
-        ? queryKey
-        : ""
+        " t.deleted_at = 'false' group by t.id,s2.id,p.id ",
+      queryKey.length !== 0 ? queryKey : ""
     )
       .then((countData) => {
         //  handler sort
@@ -166,9 +162,9 @@ const getAllTransactionsUser = (query, id) => {
         queryKey.push(offset);
 
         db.query(
-          "select t.id ,s2.method as shipping_method,p.method as payment_method ,sum(s.total) as total,count(s.id) as quantity_items,t.status,t.created_at ,t.updated_at from transaction t left join sales s on s.transaction_id = t.id inner join shipping s2 on t.shipping_id = s2.id inner join payment p on t.payment_id = p.id  Where t.user_id = $1 " +
+          "select t.id ,s2.method as shipping_method,p.method as payment_method ,sum(s.total) as total,count(s.id) as quantity_items,t.status,t.user_id , t.created_at ,t.updated_at from transaction t left join sales s on s.transaction_id = t.id inner join shipping s2 on t.shipping_id = s2.id inner join payment p on t.payment_id = p.id Where t.user_id = $1 and" +
             textQuery +
-            " t.deleted_at group by t.id,s2.id,p.id" +
+            " t.deleted_at = 'false' group by t.id,s2.id,p.id " +
             querySort +
             paginationSql,
           queryKey.length !== 0 ? queryKey : ""
@@ -194,25 +190,85 @@ const getAllTransactionsUser = (query, id) => {
       });
   });
 };
-const getAllTransactionsSeller = (id) => {
-  return new Promise((resolve, reject) => {
-    db.query(
-      "select t.id ,s2.method as shipping_method,p.method as payment_method ,sum(s.total) as total,count(s.id) as quantity_items,t.status,u.username as coustomer,t.user_id as coustomer_id, t.created_at ,t.updated_at from transaction t left join sales s on s.transaction_id = t.id inner join shipping s2 on t.shipping_id = s2.id inner join payment p on t.payment_id = p.id inner join users u on u.id = t.user_id Where  = $1 group by t.id,s2.id,p.id,u.id",
-      [id]
-    )
-      .then((result) => {
-        resolve(result.rows);
-      })
-      .catch((err) => {
-        reject(err);
-      });
-  });
+const getAllTransactionsSeller = async (query, id) => {
+  try {
+    const byStatus = Object.keys(query).find((item) => item === "status");
+    const bySort = Object.keys(query).find((item) => item === "sort");
+    const byOrder = Object.keys(query).find((item) => item === "order");
+
+    let queryList = [];
+    let queryKey = [];
+    let querySort = "";
+    let textQuery = "";
+    queryKey.push(id);
+    if (byStatus !== undefined) {
+      textQuery += `lower(t.status) LIKE lower('%' || $${
+        queryKey.length + 1
+      } || '%') AND `;
+      queryList.push({ query: "status", value: query.status });
+      queryKey.push(query.status);
+    }
+    //   limit
+    //   pagination
+    const { page = 1, limit = 12 } = query;
+    const offset = parseInt(page - 1) * parseInt(limit);
+    const paginationSql = ` LIMIT $${queryKey.length + 1} OFFSET $${
+      queryKey.length + 2
+    } `;
+
+    const countData = await db.query(
+      "select s.id as sales_id, s.transaction_id ,p.name ,s2.price ,s.quantity ,t.status as status_order,s.total from sales s inner join transaction t on s.transaction_id = t.id inner join stock s2 on s.stock_id = s2.id inner join product p on s2.product_id = p.id inner join users u on p.seller_id = u.id where p.seller_id = $1 and " +
+        textQuery +
+        " t.deleted_at = 'false' group by s.stock_id,s.id ,p.id ,t.id ,s2.id ",
+      queryKey.length !== 0 ? queryKey : ""
+    );
+    //  handler sort
+    if (bySort !== undefined) {
+      if (query.sort === "time") {
+        querySort = "ORDER BY t.created_at";
+        querySort += byOrder === undefined ? "asc" : query.order;
+      }
+
+      if (query.sort === "price") {
+        querySort = "ORDER BY total ";
+        querySort += byOrder === undefined ? "asc" : query.order;
+      }
+
+      queryList.push({ query: "sort", value: query.sort });
+    }
+
+    queryKey.push(limit);
+    queryKey.push(offset);
+
+    const result = await db.query(
+      "select s.id as sales_id, s.transaction_id ,p.id as product_id,p.name ,s2.price ,s.quantity ,t.status as status_order,s.total from sales s inner join transaction t on s.transaction_id = t.id inner join stock s2 on s.stock_id = s2.id inner join product p on s2.product_id = p.id inner join users u on p.seller_id = u.id where p.seller_id = $1 and " +
+        textQuery +
+        " t.deleted_at = 'false' group by s.stock_id,s.id ,p.id ,t.id ,s2.id " +
+        querySort +
+        paginationSql,
+      queryKey.length !== 0 ? queryKey : ""
+    );
+
+    const totalData = countData.rowCount;
+    const totalPage = Math.ceil(totalData / parseInt(limit));
+
+    const data = {
+      data: result.rows,
+      totalData: totalData,
+      totalPage: totalPage,
+      query: queryList,
+    };
+    return data;
+  } catch (error) {
+    console.log(err);
+    throw err;
+  }
 };
 
 const getDetailTransactions = (id) => {
   return new Promise((resolve, reject) => {
     const sqlQuery =
-      'select t.id ,s2."method" as "shipping_method",p."method" as "payment_method" ,sum(s.total) as total,count(s.id) as quantity_items,u.store as seller,,u2.username as coustomer,t.user_id as coustomer_id,t.status, t.created_at ,t.updated_at from "transaction" t left join sales s on s.transaction_id = t.id inner join shipping s2 on t.shipping_id = s2.id inner join payment p on t.payment_id = p.id inner join users u on u.id =  inner join users u2 on u2.id = t.user_id where t.id = $1 group by t.id,s2.id,p.id,u.id,u2.id ';
+      "select t.id ,s2.method as shipping_method,p.method as payment_method ,sum(s.total) as total,count(s.id) as quantity_items,u2.username as coustomer,t.user_id as coustomer_id,t.status, t.created_at ,t.updated_at from transaction t left join sales s on s.transaction_id = t.id inner join shipping s2 on t.shipping_id = s2.id inner join payment p on t.payment_id = p.id inner join users u2 on u2.id = t.user_id where t.id = $1 group by t.id,s2.id,p.id,u2.id ";
     db.query(sqlQuery, [id])
       .then((result) => {
         resolve(result.rows);
