@@ -2,38 +2,6 @@ const jwt = require("jsonwebtoken");
 const db = require("../config/db");
 const { client } = require("../config/redis");
 
-const chekDuplicateEmail = async (req, res, next) => {
-  try {
-      msg: "You need to sign in",
-    });
-  const oldtoken = bearerToken.split(" ")[1];
-
-  jwt.verify(oldtoken, process.env.JWT_SECRET, async (err, payload) => {
-    if (err && err.name === "TokenExpiredError")
-      return res.status(401).json({
-        msg: "You need to sign in again",
-      });
-      try {
-        const cacheToken = await client.get(`token${payload.id}`)
-        if(!cacheToken) {
-          return res.status(403).json({
-            msg : "Please login first"
-          })
-        }
-        if(cacheToken !== oldtoken){
-          return res.status(403).json({
-            msg : "Token unauthorized, please login again"
-          })
-        }
-      } catch (error) {
-        console.log(error);
-        return res.status(400).json({
-          error
-        })
-      }
-    req.userPayload = payload;
-    next();
-  });
 
 const signUp = (body, hashPassword) => {
   return new Promise((resolve, reject) => {
@@ -64,4 +32,13 @@ const getPassByEmail = async (email) => {
   }
 };
 
-module.exports = { getPassByEmail, signUp ,chekDuplicateEmail};
+const editPassword = async (id, hashPassword)=>{
+  try {
+      const result = await db.query('update users set password = $1 where id = $2', [hashPassword, id])
+      return result.rows[0]
+  } catch (error) {
+      console.log(error);
+      throw {error}
+  }
+}
+module.exports = { getPassByEmail, signUp, editPassword};
