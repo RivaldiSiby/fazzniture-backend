@@ -10,5 +10,8 @@ Router.post('/register', validateRegister, middleware.chekDuplicateEmail, authCo
 Router.delete('/logout', authControllers.logout);
 Router.post('/forgot-password', authControllers.forgotPassword)
 Router.put('/reset-password', authControllers.resetPassword)
+Router.get('test', (req, res)=>{
+  console.log('testing')
+})
 
 module.exports = Router;
