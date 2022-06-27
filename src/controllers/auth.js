@@ -22,18 +22,7 @@ const register = async (req, res) => {
     });
   }
 };
-// const login = async (req, res) => {
-//   try {
-//     const { email, password } = req.body;
-//     const payload = await getPassByEmail(email);
-//     const result = await bcrypt.compare(password, payload.password);
-//     if (!result) {
-//       return res.status(400).json({
-//         msg: "Wrong email or password",
-//       });
-//     }
 
-// }
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -52,19 +41,16 @@ const login = async (req, res) => {
     res.status(200).json({
       msg: "Login Succes",
       datauser: {
-//     res.status(200).json({
-//       msg: "Login Succes",
-//       datauser: {
-//         username,
-//         email,
-//         gender,
-//         description,
-//         role_id,
-//         role,
-//         pict,
-//       },
-//       token,
-//     });
+        username,
+        email,
+        gender,
+        description,
+        role_id,
+        role,
+        pict,
+      },
+      token,
+    });
   } catch (error) {
     console.log(error);
     res.status(400).json({
@@ -177,6 +163,7 @@ const resetPassword = async (req, res)=>{
       })
   }
 }
+
 
 
 module.exports = { register, login, logout, forgotPassword, resetPassword};
