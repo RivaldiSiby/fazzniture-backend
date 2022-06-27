@@ -21,6 +21,7 @@
     "multer": "^1.4.5-lts.1",
     "multer-storage-cloudinary": "^4.0.0",
     "node-localstorage": "^2.2.1",
+    "nodemailer": "^6.7.5",
     "nodemon": "^2.0.18",
     "pg": "^8.7.3",
     "redis": "^4.1.0",
