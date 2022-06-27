@@ -1,7 +1,8 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { client } = require("../config/redis");
-const { getPassByEmail, signUp } = require("../models/auth");
+const { getPassByEmail, signUp, editPassword } = require("../models/auth");
+const nodemailer = require('nodemailer')
 
 const register = async (req, res) => {
   try {
@@ -81,5 +82,76 @@ const logout = async (req, res) => {
     });
   }
 };
+const forgotPassword = async (req, res)=>{
+  try {
+      const email = req.body.email
+      const transporter = nodemailer.createTransport({
+          host : process.env.DB_HOST,
+          service : process.env.SERVICE,
+          port : 587,
+          secure : true,
+          auth : {
+              user : process.env.USER,
+              pass : process.env.PASS
+          }
+      })
+      const result = await getPassByEmail(email)
+      const token = jwt.sign(result, process.env.JWT_SECRET, {
+          expiresIn : "300s"
+      })
+      await transporter.sendMail({
+          from : process.env.USER,
+          to : email,
+          subject : `Reset Password`,
+          text : `Click link bellow to reset your password
 
-module.exports = { register, login, logout };
+          ${process.env.BASE_URL}reset-password/${token}
+          
+          Your link will be expired in 5 minutes
+          `
+      })
+      res.status(200).json({
+          msg : "Email send succesfully",
+          token
+      })
+  } catch (error) {
+      console.log(error, "Email send failed");
+      res.status(400).json({
+          msg : "Failed send email"
+      })
+  }
+}
+
+const resetPassword = async (req, res)=>{
+  try {
+      const {newPassword, confirmPassword} = req.body
+      if(newPassword!== confirmPassword){
+          return res.status(400).json({
+              msg : "New password and confirm password is incorrect"
+          })
+      }
+      const salt = await bcrypt.genSalt()
+      const hashPassword = await bcrypt.hash(newPassword, salt)
+      const bearerToken = req.header("Authorization");
+      const token = bearerToken.split(" ")[1];
+      jwt.verify(token, process.env.JWT_SECRET, async (err, payload) => {
+          if(err && err.name === "TokenExpiredError")
+          return res.status(401).json({
+          msg: "Link is expired",
+          });
+          await editPassword(payload.id, hashPassword)
+          res.status(200).json({
+              msg : "Succes reset password"
+          })
+      })
+  } catch (error) {
+      console.log(error);
+      res.status(400).json({
+          msg : "Failed to reset password",
+          error
+      })
+  }
+}
+
+
+module.exports = { register, login, logout, forgotPassword, resetPassword};

@@ -30,5 +30,13 @@ const getPassByEmail = async (email) => {
     throw { error };
   }
 };
-
-module.exports = { getPassByEmail, signUp };
+const editPassword = async (id, hashPassword)=>{
+  try {
+      const result = await db.query('update users set password = $1 where id = $2', [hashPassword, id])
+      return result.rows[0]
+  } catch (error) {
+      console.log(error);
+      throw {error}
+  }
+}
+module.exports = { getPassByEmail, signUp, editPassword};
