@@ -17,7 +17,7 @@ db.connect()
       console.log('Database Connected');
       // pasang cors
       const corsOptions = {
-         origin: ['http://localhost:3000'],
+         origin: ['http://localhost:3000','https://fazzniture.netlify.app'],
          methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
          allowedHeaders: ['Content-Type', 'Authorization'],
       };
