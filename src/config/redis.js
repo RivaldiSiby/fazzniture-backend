@@ -1,5 +1,6 @@
 const redis = require('redis')
-const client = redis.createClient()
+const password = process.env.REDIS_PASSWORD
+const client = redis.createClient(`redis://${process.env.REDIS_DATABASE_URI}`, {password})
 
 const redisCon = async ()=>{
     try {
