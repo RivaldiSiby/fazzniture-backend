@@ -38,6 +38,7 @@ db.connect()
       server.listen(PORT, () => {
          console.log(`App listening on port ${PORT}`);
          console.log(`${process.env.REDIS_PASSWORD}`);
+         console.log(`${process.env.REDIS_DATABASE_URI}`);
       });
    })
    .catch((error) => {
