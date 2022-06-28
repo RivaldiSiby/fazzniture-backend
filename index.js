@@ -10,6 +10,8 @@ const {redisCon} = require('./src/config/redis')
 
 const server = express();
 const PORT = process.env.PORT || 8080;
+
+redisCon()
 db.connect()
    .then(() => {
       server.use(express.json());
