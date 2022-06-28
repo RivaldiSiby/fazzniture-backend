@@ -20,7 +20,7 @@ db.connect()
       // pasang cors
       const corsOptions = {
          origin: ['http://localhost:3000','https://fazzniture.netlify.app'],
-         methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+         methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS','PUT'],
          allowedHeaders: ['Content-Type', 'Authorization'],
       };
 
